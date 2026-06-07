@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Programa de Movilidad</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f5f0e8;
+    --warm-white: #faf8f4;
+    --sage: #8a9e7e;
+    --sage-dark: #5f7255;
+    --terra: #c4714a;
+    --terra-light: #e8956d;
+    --charcoal: #2d2d2d;
+    --mid-gray: #888;
+    --light-gray: #e0dbd2;
+    --card-bg: #ffffff;
+    --shadow: 0 4px 24px rgba(45,45,45,0.08);
+    --shadow-hover: 0 8px 40px rgba(45,45,45,0.15);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background-color: var(--cream); color: var(--charcoal); min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    background: var(--warm-white);
+    border-bottom: 1px solid var(--light-gray);
+    padding: 0 2rem;
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; height: 64px; gap: 1rem;
+  }
+  .back-btn {
+    display: none; align-items: center; gap: 0.4rem;
+    background: none; border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    color: var(--sage-dark); font-weight: 500;
+    padding: 0.4rem 0.6rem; border-radius: 6px; transition: background 0.2s;
+  }
+  .back-btn:hover { background: var(--light-gray); }
+  .back-btn svg { width: 18px; height: 18px; }
+  .header-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--charcoal); }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 0.75rem; }
+  .admin-link {
+    font-size: 0.78rem; font-weight: 500; color: var(--mid-gray);
+    text-decoration: none; padding: 0.3rem 0.7rem;
+    border: 1px solid var(--light-gray); border-radius: 20px;
+    transition: all 0.2s;
+  }
+  .admin-link:hover { color: var(--terra); border-color: var(--terra-light); }
+
+  /* HERO */
+  .hero { padding: 4rem 2rem 2.5rem; max-width: 900px; margin: 0 auto; }
+  .hero-label { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--terra); margin-bottom: 0.75rem; }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.15; color: var(--charcoal); margin-bottom: 0.75rem; }
+  .hero h1 em { font-style: italic; color: var(--sage-dark); }
+  .hero p { font-size: 1rem; color: var(--mid-gray); font-weight: 300; line-height: 1.6; max-width: 480px; }
+
+  /* CONTAINER */
+  .container { max-width: 900px; margin: 0 auto; padding: 1.5rem 2rem 5rem; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* SECTION LABEL */
+  .section-label { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid-gray); margin-bottom: 1.2rem; }
+
+  /* WEEKS GRID */
+  .weeks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+  .week-card {
+    background: var(--card-bg); border-radius: 16px; padding: 1.5rem;
+    cursor: pointer; border: 1.5px solid transparent;
+    box-shadow: var(--shadow); transition: all 0.25s ease;
+    position: relative; overflow: hidden;
+    animation: fadeUp 0.4s ease both;
+  }
+  .week-card::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 4px; height: 100%; background: var(--light-gray); transition: background 0.25s;
+  }
+  .week-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: var(--sage); }
+  .week-card:hover::before { background: var(--sage); }
+  .week-card.complete::before { background: var(--sage); }
+  .week-card.in-progress::before { background: var(--terra); }
+  .week-number { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid-gray); margin-bottom: 0.4rem; }
+  .week-title { font-family: 'Playfair Display', serif; font-size: 1.35rem; color: var(--charcoal); margin-bottom: 0.75rem; }
+  .week-meta { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--mid-gray); font-weight: 300; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--light-gray); flex-shrink: 0; }
+
+  /* DAYS GRID */
+  .week-hero { margin-bottom: 2rem; }
+  .week-hero h2 { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--charcoal); margin-bottom: 0.3rem; }
+  .week-hero p { color: var(--mid-gray); font-size: 0.9rem; font-weight: 300; }
+  .days-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
+  .day-card {
+    background: var(--card-bg); border-radius: 14px; padding: 1.4rem;
+    cursor: pointer; border: 1.5px solid transparent;
+    box-shadow: var(--shadow); transition: all 0.25s ease;
+    animation: fadeUp 0.4s ease both;
+  }
+  .day-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: var(--terra-light); }
+  .day-number { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--terra); margin-bottom: 0.4rem; }
+  .day-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--charcoal); margin-bottom: 0.6rem; }
+  .day-count { font-size: 0.8rem; color: var(--mid-gray); font-weight: 300; }
+  .day-count strong { color: var(--charcoal); font-weight: 500; }
+
+  /* EXERCISES */
+  .day-hero { margin-bottom: 2rem; }
+  .day-hero h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--charcoal); margin-bottom: 0.3rem; }
+  .day-hero p { color: var(--mid-gray); font-size: 0.9rem; font-weight: 300; }
+  .exercises-list { display: flex; flex-direction: column; gap: 1rem; }
+  .exercise-card {
+    background: var(--card-bg); border-radius: 14px; overflow: hidden;
+    box-shadow: var(--shadow); border: 1.5px solid transparent;
+    transition: border-color 0.2s; animation: fadeUp 0.4s ease both;
+  }
+  .exercise-card:hover { border-color: var(--light-gray); }
+  .exercise-header { display: flex; align-items: center; gap: 1rem; padding: 1.1rem 1.4rem; cursor: pointer; user-select: none; }
+  .exercise-num {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--cream);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 500; color: var(--sage-dark); flex-shrink: 0;
+  }
+  .exercise-name { flex: 1; font-size: 1rem; font-weight: 400; color: var(--charcoal); }
+  .video-badge {
+    font-size: 0.65rem; font-weight: 500; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 20px;
+    background: var(--cream); color: var(--mid-gray);
+  }
+  .video-badge.has-video { background: #e8f2e5; color: var(--sage-dark); }
+  .chevron { transition: transform 0.3s ease; color: var(--mid-gray); flex-shrink: 0; }
+  .exercise-card.open .chevron { transform: rotate(180deg); }
+  .exercise-body { display: none; padding: 0 1.4rem 1.4rem; }
+  .exercise-card.open .exercise-body { display: block; }
+
+  /* VIDEO */
+  .video-wrapper {
+    position: relative; width: 100%; padding-bottom: 56.25%;
+    border-radius: 10px; overflow: hidden; background: var(--cream);
+  }
+  .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+  .video-placeholder {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0.75rem; color: var(--mid-gray);
+  }
+  .video-placeholder svg { width: 40px; height: 40px; opacity: 0.4; }
+  .video-placeholder span { font-size: 0.85rem; font-weight: 300; }
+
+  /* PROGRESS BAR */
+  .progress-bar-wrap { background: var(--light-gray); border-radius: 99px; height: 5px; margin-bottom: 2.5rem; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--sage), var(--terra-light)); border-radius: 99px; transition: width 0.4s ease; }
+
+  /* ─── ADMIN PAGE ─── */
+  #adminPage { display: none; }
+  #adminPage.active { display: block; }
+  .admin-container { max-width: 700px; margin: 0 auto; padding: 2rem 2rem 5rem; }
+  .admin-hero { margin-bottom: 2.5rem; }
+  .admin-hero h2 { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--charcoal); margin-bottom: 0.4rem; }
+  .admin-hero p { color: var(--mid-gray); font-size: 0.9rem; font-weight: 300; line-height: 1.6; }
+
+  .admin-selectors { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+  .admin-select {
+    flex: 1; min-width: 120px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    padding: 0.65rem 1rem; border-radius: 10px;
+    border: 1.5px solid var(--light-gray); background: var(--warm-white);
+    color: var(--charcoal); cursor: pointer; outline: none;
+    transition: border-color 0.2s;
+  }
+  .admin-select:focus { border-color: var(--sage); }
+
+  .admin-exercises { display: flex; flex-direction: column; gap: 0.75rem; }
+  .admin-exercise-row {
+    background: var(--card-bg); border-radius: 12px; padding: 1rem 1.2rem;
+    box-shadow: var(--shadow); display: flex; gap: 1rem; align-items: center;
+  }
+  .admin-exercise-num {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--cream);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; font-weight: 500; color: var(--sage-dark); flex-shrink: 0;
+  }
+  .admin-fields { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
+  .admin-input {
+    font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+    padding: 0.5rem 0.8rem; border-radius: 8px;
+    border: 1.5px solid var(--light-gray); background: var(--warm-white);
+    color: var(--charcoal); outline: none; transition: border-color 0.2s; width: 100%;
+  }
+  .admin-input:focus { border-color: var(--terra-light); }
+  .admin-input::placeholder { color: var(--mid-gray); font-weight: 300; }
+  .admin-input.url-input { font-size: 0.82rem; }
+
+  /* AUTOCOMPLETE */
+  .admin-nombre-wrap { position: relative; }
+  .autocomplete-dropdown {
+    display: none;
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: var(--card-bg); border: 1.5px solid var(--terra-light);
+    border-radius: 8px; box-shadow: var(--shadow-hover);
+    z-index: 200; overflow: hidden;
+  }
+  .autocomplete-dropdown.open { display: block; }
+  .autocomplete-item {
+    padding: 0.55rem 0.9rem; font-size: 0.85rem; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 0.5rem; transition: background 0.15s;
+  }
+  .autocomplete-item:hover { background: var(--cream); }
+  .autocomplete-item-name { color: var(--charcoal); font-weight: 400; }
+  .autocomplete-item-badge {
+    font-size: 0.7rem; color: var(--sage-dark); font-weight: 500;
+    background: #e8f2e5; padding: 0.15rem 0.45rem; border-radius: 20px; flex-shrink: 0;
+  }
+
+  .admin-save-btn {
+    margin-top: 2rem;
+    background: var(--charcoal); color: #fff;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500;
+    padding: 0.85rem 2rem; border-radius: 10px; border: none; cursor: pointer;
+    transition: background 0.2s; width: 100%;
+  }
+  .admin-save-btn:hover { background: var(--sage-dark); }
+  .save-feedback {
+    text-align: center; font-size: 0.85rem; color: var(--sage-dark);
+    font-weight: 500; margin-top: 1rem; min-height: 1.4em;
+  }
+
+  /* TEST CARDS */
+  .test-section { margin-bottom: 2rem; }
+  .test-card {
+    background: linear-gradient(135deg, #fdf6ee 0%, #f0ece3 100%);
+    border-radius: 16px; padding: 1.5rem 1.8rem;
+    cursor: pointer; border: 1.5px solid var(--terra-light);
+    box-shadow: var(--shadow); transition: all 0.25s ease;
+    display: flex; align-items: center; gap: 1.2rem;
+    animation: fadeUp 0.4s ease both;
+  }
+  .test-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: var(--terra); }
+  .test-icon {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: var(--terra-light); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+  }
+  .test-card-body { flex: 1; }
+  .test-card-label { font-size: 0.68rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--terra); margin-bottom: 0.2rem; }
+  .test-card-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--charcoal); margin-bottom: 0.25rem; }
+  .test-card-meta { font-size: 0.8rem; color: var(--mid-gray); font-weight: 300; }
+  .test-card-meta strong { color: var(--charcoal); font-weight: 500; }
+
+  /* TEST VIEW */
+  .test-view-hero { margin-bottom: 1.5rem; }
+  .test-view-hero h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--charcoal); margin-bottom: 0.3rem; }
+  .test-reminder {
+    background: linear-gradient(135deg, #fdf6ee, #f5ede0);
+    border: 1px solid var(--terra-light); border-radius: 12px;
+    padding: 1rem 1.2rem; margin-bottom: 2rem;
+    display: flex; gap: 0.75rem; align-items: flex-start;
+  }
+  .test-reminder-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 0.05rem; }
+  .test-reminder p { font-size: 0.85rem; color: var(--charcoal); line-height: 1.55; font-weight: 300; }
+  .test-reminder strong { font-weight: 500; }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .hero { padding: 2.5rem 1.2rem 2rem; }
+    .container, .admin-container { padding: 1rem 1.2rem 4rem; }
+    header { padding: 0 1.2rem; }
+    .weeks-grid { grid-template-columns: repeat(2, 1fr); }
+    .days-grid { grid-template-columns: repeat(2, 1fr); }
+    .admin-exercise-row { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" id="backBtn" onclick="goBack()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Volver
+  </button>
+  <span class="header-title" id="headerTitle">Programa de Movilidad</span>
+  <div class="header-right">
+    <a href="#" class="admin-link" id="adminToggle" onclick="toggleAdmin(event)">⚙ Cargar videos</a>
+  </div>
+</header>
+
+<!-- ═══════════ PROGRAMA (main app) ═══════════ -->
+<div id="mainApp">
+  <div class="hero" id="heroSection">
+    <div class="hero-label">Programa · 4 meses</div>
+    <h1>Movilidad<br><em>espalda baja</em></h1>
+    <p>Seguí tu programa semana a semana. Cada día tiene ejercicios guiados con video.</p>
+  </div>
+
+  <div class="container">
+    <div class="view active" id="viewWeeks">
+      <div class="section-label">Seleccioná una semana</div>
+      <div class="weeks-grid" id="weeksGrid"></div>
+    </div>
+
+    <div class="view" id="viewDays">
+      <div class="week-hero">
+        <h2 id="weekTitle"></h2>
+        <p id="weekSubtitle"></p>
+      </div>
+      <div class="section-label">Elegí el día</div>
+      <div class="days-grid" id="daysGrid"></div>
+    </div>
+
+    <div class="view" id="viewExercises">
+      <div class="day-hero">
+        <h2 id="dayTitle"></h2>
+        <p id="daySubtitle"></p>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <div class="exercises-list" id="exercisesList"></div>
+    </div>
+  </div>
+</div>
+
+    <div class="view" id="viewTest">
+      <div class="test-view-hero">
+        <h2 id="testTitle"></h2>
+      </div>
+      <div class="test-reminder">
+        <div class="test-reminder-icon">📹</div>
+        <p><strong>Recordatorio:</strong> grabate haciendo cada pose antes de ver el video de referencia. Así vas a poder comparar tu progreso con el tiempo.</p>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="testProgressFill" style="width:0%"></div>
+      </div>
+      <div class="exercises-list" id="testExercisesList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ ADMIN PAGE ═══════════ -->
+<div id="adminPage">
+  <div class="admin-container">
+    <div class="admin-hero">
+      <h2>Cargar videos</h2>
+      <p>Seleccioná la semana y el día, completá el nombre y el link de YouTube de cada ejercicio, y guardá. Los cambios se reflejan inmediatamente en la app.</p>
+    </div>
+
+    <div class="admin-selectors">
+      <select class="admin-select" id="adminWeekSel" onchange="renderAdminDay()">
+        <!-- filled by JS -->
+      </select>
+      <select class="admin-select" id="adminDaySel" onchange="renderAdminDay()">
+        <option value="0">Día 1</option>
+        <option value="1">Día 2</option>
+        <option value="2">Día 3</option>
+        <option value="3">Día 4</option>
+        <option value="test-0">Test de movilidad</option>
+      </select>
+    </div>
+
+    <div class="admin-exercises" id="adminExercises"></div>
+
+    <button class="admin-save-btn" onclick="saveAdminDay()">Guardar cambios</button>
+    <div class="save-feedback" id="saveFeedback"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  DATOS — se guardan en localStorage automáticamente
+// ══════════════════════════════════════════════════════
+const DEFAULT_EXERCISES = 9;
+const TOTAL_WEEKS = 16;
+const DAYS_PER_WEEK = 4;
+const TEST_NAMES = ['Test inicial', 'Test mes 1', 'Test mes 2', 'Test mes 3', 'Test mes 4'];
+// Tests appear: before week 1, after week 4, after week 8, after week 12, after week 16
+// Stored in PROGRAMA.tests[0..4], each with 5 exercises (same poses, shared youtubeIds via tests[0])
+
+function buildDefaultTests() {
+  return Array.from({ length: 5 }, (_, ti) => ({
+    nombre: TEST_NAMES[ti],
+    ejercicios: [{ nombre: 'Test de movilidad', youtubeId: '' }]
+  }));
+}
+
+function buildDefaultData() {
+  return {
+    semanas: Array.from({ length: TOTAL_WEEKS }, (_, wi) => ({
+      numero: wi + 1,
+      dias: Array.from({ length: DAYS_PER_WEEK }, (_, di) => ({
+        numero: di + 1,
+        ejercicios: Array.from({ length: DEFAULT_EXERCISES }, (_, ei) => ({
+          nombre: `Ejercicio ${ei + 1}`,
+          youtubeId: ""
+        }))
+      }))
+    })),
+    tests: buildDefaultTests()
+  };
+}
+
+function loadData() {
+  try {
+    const saved = localStorage.getItem('mobilidad_programa');
+    if (saved) {
+      const data = JSON.parse(saved);
+      if (!data.tests) data.tests = buildDefaultTests();
+      data.tests.forEach((t) => {
+        if (t.ejercicios.length !== 1) {
+          const existing = t.ejercicios.find(e => e.youtubeId);
+          t.ejercicios = [{ nombre: 'Test de movilidad', youtubeId: existing ? existing.youtubeId : '' }];
+        }
+      });
+      return data;
+    }
+  } catch(e) {}
+  // Pre-loaded data
+  return JSON.parse('{"semanas": [{"numero": 1, "dias": [{"numero": 1, "ejercicios": [{"nombre": "Sentadilla Cossack / Lateral - 3 series de 8", "youtubeId": "drive:174swERBR6nCTWIfbYnaV0_a9tF7IwEYj"}, {"nombre": "Elephant walks - 3 series de 10/ pierna", "youtubeId": "drive:1zdtulc8l6OJmTEKiln3nt64zkYpRuk_m"}, {"nombre": "Squat to pike - 3 series de 8", "youtubeId": "drive:1MbxC3wA26EMZpE25ezCkc8tNhwELmaIe"}, {"nombre": "Cat Cow - 3 series de 8", "youtubeId": "drive:1FBOetmYYIkV8jaMbgK6mgc0rvKb_BxMC"}, {"nombre": "Cobra pasiva - 3 series de 5 - 5 segundos de mantenimeinto", "youtubeId": "drive:1XwWUS040jGuUCQY65SgHT3R8IuzrpqPd"}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 2, "ejercicios": [{"nombre": "90/90 Shin Box - 3 series de 10", "youtubeId": "drive:1fMeyReuYRYwTfqX3Fb_ASoHpmyFAUn1d"}, {"nombre": "Groin Drift - 3 series de 1 min por cada pierna", "youtubeId": "drive:1hIphWvzqoMNqEn6DEHuoghTEzukKRI-k"}, {"nombre": "SLRDL - 3 series de 1 min por cada pierna", "youtubeId": "drive:1UA_SCUwDQqTLzQVZnZ3Fgd8hq8QJqe4D"}, {"nombre": "Shoulder Prone Angels - 3 series de 8", "youtubeId": "drive:1NAkMZ34m1B7MO2N2MjqyUL5HO9e1jwIZ"}, {"nombre": "Supine Legovers - 3 seires de 8", "youtubeId": "drive:1sp_1zadh2yjYN0lyEgegPKB1wE_QRxL9"}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 3, "ejercicios": [{"nombre": "Lizard Strech Regression - 3 serias de 8/lado", "youtubeId": "drive:1dM-R51RntJz0rdRNm7pOV6NXlsjFchog"}, {"nombre": "Alcances Laterales (brazos extendidos) - 3 series de 8/lado", "youtubeId": "drive:1O017oA6jqgvBC9uP7f6TsYH3nWJ02f2E"}, {"nombre": "Deep Squat Shifts - 3 series de 8/lado", "youtubeId": "drive:1TWzEdlbUmpz0QsjfTDCksUJs3deupl5H"}, {"nombre": "Child pose shifts - 3 series de 8/lado", "youtubeId": "drive:1-gQWay5uR1SR1Q5ZvytEiTFXkpzKUQ7S"}, {"nombre": "Rotaciones de Cuello - 3 series de 6", "youtubeId": "drive:1EUNCZlb_5YseeWhAQxAHYqm-wPhVwls9"}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 4, "ejercicios": [{"nombre": "Downward Puch up - 3 series de 6", "youtubeId": "drive:1KGEstxKFwySkgS16-6Ezu1gMJ65YjhJW"}, {"nombre": "Chicken wings - 3 series de 8", "youtubeId": "drive:1YhzGB8_amBafxEQI-LrHz3siX0sKBfTJ"}, {"nombre": "90/90 GM - 3 series de 10", "youtubeId": "drive:1Co0gRRO_yvqoTOT7j634G6jvsF12zjQh"}, {"nombre": "T-Spine rotations Acostado - 3 series de 12", "youtubeId": "drive:1FTrBjv8g0U8UIlUWHBWT_MPs7HloZfOY"}, {"nombre": "Isqueo a tobillos - 3 series de 8", "youtubeId": "drive:12pSbkUdDAkoBsFaT4LCcdmrr7u8BfuD6"}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}]}, {"numero": 2, "dias": [{"numero": 1, "ejercicios": [{"nombre": "90/90 Shin Box - 3 series de 10", "youtubeId": "drive:1fMeyReuYRYwTfqX3Fb_ASoHpmyFAUn1d"}, {"nombre": "Aductor Rocks - 3 series de 8/lado", "youtubeId": "drive:1lf0NxXPGetNj0Rl_0l49iuX7qt4m0diq"}, {"nombre": "Movilización de Glúteos - 3 series de 8/lado", "youtubeId": "drive:1XUwHq7yYbUVkDVE0cUEnSApoKa3Z92Jm"}, {"nombre": "T-Spine rotations Acostado - 3 series 8/lado", "youtubeId": "drive:1FTrBjv8g0U8UIlUWHBWT_MPs7HloZfOY"}, {"nombre": "Rotaciones de Cuello - 3 series de 6", "youtubeId": "drive:1EUNCZlb_5YseeWhAQxAHYqm-wPhVwls9"}, {"nombre": "Cat Cow - 3 series de 8", "youtubeId": "drive:1FBOetmYYIkV8jaMbgK6mgc0rvKb_BxMC"}, {"nombre": "Isqueo a tobillos - 3 series de 8/lado", "youtubeId": "drive:12pSbkUdDAkoBsFaT4LCcdmrr7u8BfuD6"}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 2, "ejercicios": [{"nombre": "Plancha - 2 series de 30/45s o tu maximo", "youtubeId": "drive:1gG8E5pgpFgSo_tmoo3MGH-2DJKDLLpGf"}, {"nombre": "Deadbug - 3 series de 8", "youtubeId": "drive:1I-kSf2Frr4J5vIxhJuICxVtkW3UMEcE3"}, {"nombre": "Side Plank Abduction 3 series de 4/6 por lado", "youtubeId": "drive:1LmyRlwSzYiNqZesXLkX3UCTgLUa34ORS"}, {"nombre": "Groin Squeeze", "youtubeId": "drive:1uiAIsUjaC9jiIYz23dvLZoEf0-5WthIL"}, {"nombre": "Avion de hombros", "youtubeId": "drive:1ZkU003jlnGUwFJlOx_1CJ8V0UTqatxY0"}, {"nombre": "Avión de cadera con apoyo", "youtubeId": "drive:1Ap5oW3ADX_ZfXgecAdfV41mPZVSnHmNB"}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 3, "ejercicios": [{"nombre": "Roll to reach - 3 series de 6", "youtubeId": "drive:1N7O3UHY7hjkBoFqwRNFy2NFBHHc-6VL8"}, {"nombre": "Puente de Glúteos - 3 series de 8", "youtubeId": "drive:1N7O3UHY7hjkBoFqwRNFy2NFBHHc-6VL8"}, {"nombre": "Squat to pike - 3 series de 8", "youtubeId": "drive:1MbxC3wA26EMZpE25ezCkc8tNhwELmaIe"}, {"nombre": "Kneeling T-Spine Rotation - 3 series de 8/lado", "youtubeId": "drive:14dYjTL5n3ZZhs9YSU0neglOgDdqoN4lK"}, {"nombre": "Movilización de Glúteos - 3 series de 8/lado", "youtubeId": "drive:1XUwHq7yYbUVkDVE0cUEnSApoKa3Z92Jm"}, {"nombre": "Click de Talón - 3 series de 8/lado", "youtubeId": "drive:1fGz88_I0BKkP1MuLW85Vw00dy7ruPkEj"}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 4, "ejercicios": [{"nombre": "Plancha - 2 series de 30/45s o tu maximo", "youtubeId": "drive:1gG8E5pgpFgSo_tmoo3MGH-2DJKDLLpGf"}, {"nombre": "Deadbug - 3 series de 8", "youtubeId": "drive:1I-kSf2Frr4J5vIxhJuICxVtkW3UMEcE3"}, {"nombre": "Child pose shifts - 3 series de 8/lado", "youtubeId": "drive:1-gQWay5uR1SR1Q5ZvytEiTFXkpzKUQ7S"}, {"nombre": "Puente de Isqueo - 3 series de 5", "youtubeId": "drive:1R4C5t8EtJb1E0bgHnx4tCk-lUjmLbEjf"}, {"nombre": "Flexion de cadera ISO Hold - 3 series de 5/lado", "youtubeId": "drive:1k-GJVvyb5qua2fn1V7lVcZS4JZPCDESB"}, {"nombre": "Flexión de hombros - 3 series de 8", "youtubeId": "drive:1SU5sir9ll7FwDvFjjPKADsZ4Q-GZp9C2"}, {"nombre": "Downward Push up - 3 series de 8", "youtubeId": "drive:1KGEstxKFwySkgS16-6Ezu1gMJ65YjhJW"}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}]}, {"numero": 3, "dias": [{"numero": 1, "ejercicios": [{"nombre": "90/90 Shin Box - 3 series de 10", "youtubeId": "drive:1fMeyReuYRYwTfqX3Fb_ASoHpmyFAUn1d"}, {"nombre": "Cat Cow - 3 series de 8", "youtubeId": "drive:1FBOetmYYIkV8jaMbgK6mgc0rvKb_BxMC"}, {"nombre": "Movilización de Glúteos - 3 series de 8/lado", "youtubeId": "drive:1XUwHq7yYbUVkDVE0cUEnSApoKa3Z92Jm"}, {"nombre": "Groin Drift - 3 series de 8/lado", "youtubeId": "drive:1hIphWvzqoMNqEn6DEHuoghTEzukKRI-k"}, {"nombre": "T-Spine rotations Acostado - 3 series 4/lado", "youtubeId": "drive:1FTrBjv8g0U8UIlUWHBWT_MPs7HloZfOY"}, {"nombre": "SLRDL - 3 series de 8/lado", "youtubeId": "drive:1UA_SCUwDQqTLzQVZnZ3Fgd8hq8QJqe4D"}, {"nombre": "SLRDL to Hip Flexion - 3 series de 8/lado", "youtubeId": "drive:1z4USV53Y526EapR4PvCyu_i0inmMeICf"}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 2, "ejercicios": [{"nombre": "Plancha - 2 series de 30/45s o tu maximo", "youtubeId": "drive:1gG8E5pgpFgSo_tmoo3MGH-2DJKDLLpGf"}, {"nombre": "Deadbug - 3 series de 8", "youtubeId": "drive:1I-kSf2Frr4J5vIxhJuICxVtkW3UMEcE3"}, {"nombre": "Side Plank Abduction 3 series de 4/6 por lado", "youtubeId": "drive:1LmyRlwSzYiNqZesXLkX3UCTgLUa34ORS"}, {"nombre": "Avión de cadera con apoyo - 3 series de 6/lado", "youtubeId": "drive:1Ap5oW3ADX_ZfXgecAdfV41mPZVSnHmNB"}, {"nombre": "Copenhagen Plank - 3 series de 5/lado", "youtubeId": "drive:1LmyRlwSzYiNqZesXLkX3UCTgLUa34ORS"}, {"nombre": "Avion de hombros - 3 series de 8/lado", "youtubeId": "drive:1ZkU003jlnGUwFJlOx_1CJ8V0UTqatxY0"}, {"nombre": "Hombros 4 direcciones - 3 series de 4", "youtubeId": "drive:1xznAkKn0by1ZJxlPwz3H977_9fIcQthI"}, {"nombre": "Rotación interna y externa de hombros", "youtubeId": "drive:1sF-lf0r8zPypfz_gKgwJ3rXMxLYvCUW2"}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 3, "ejercicios": [{"nombre": "Roll to reach - 3 series de 6", "youtubeId": "drive:1N7O3UHY7hjkBoFqwRNFy2NFBHHc-6VL8"}, {"nombre": "Puente de Glúteos - 3 series de 8", "youtubeId": "drive:1N7O3UHY7hjkBoFqwRNFy2NFBHHc-6VL8"}, {"nombre": "Squat to pike - 3 series de 8", "youtubeId": "drive:1MbxC3wA26EMZpE25ezCkc8tNhwELmaIe"}, {"nombre": "Kneeling T-Spine Rotation - 3 series de 8/lado", "youtubeId": "drive:14dYjTL5n3ZZhs9YSU0neglOgDdqoN4lK"}, {"nombre": "Círculos de cadera - 3 series de 8/lado", "youtubeId": "drive:1r-VBMB9Z-k_MK3htYOOvNpvDEP2Hwj4W"}, {"nombre": "Click de Talón - 3 series de 8/lado", "youtubeId": "drive:1fGz88_I0BKkP1MuLW85Vw00dy7ruPkEj"}, {"nombre": "Sentadilla Lateral a rotación - 3 series de 8/lado", "youtubeId": "drive:1uGcO47gL0G8PhgF_FaGVQCtgJGdk-QfB"}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 4, "ejercicios": [{"nombre": "Plancha - 2 series de 30/45s o tu maximo", "youtubeId": "drive:1gG8E5pgpFgSo_tmoo3MGH-2DJKDLLpGf"}, {"nombre": "Deadbug c/ carga - 3 series de 8/lado", "youtubeId": "drive:1-c-Z1omoL0mREo-TO3rANeJq2zndBmx4"}, {"nombre": "Side Plank Abduction 3 series de 4/6 por lado", "youtubeId": "drive:1LmyRlwSzYiNqZesXLkX3UCTgLUa34ORS"}, {"nombre": "Flexión de cadera con rotación - 3 series de 5/lado", "youtubeId": "drive:1sieH6uwAKiEQVNgXEmfl-yVCxp99AxA0"}, {"nombre": "Hombros 4 direcciones - 3 series de 4", "youtubeId": "drive:1xznAkKn0by1ZJxlPwz3H977_9fIcQthI"}, {"nombre": "Downward Push up - 3 series de 8", "youtubeId": "drive:1KGEstxKFwySkgS16-6Ezu1gMJ65YjhJW"}, {"nombre": "Shoulder Prone Angels - 3 series de 8", "youtubeId": "drive:1NAkMZ34m1B7MO2N2MjqyUL5HO9e1jwIZ"}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}]}, {"numero": 4, "dias": [{"numero": 1, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 2, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 3, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 4, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}]}, {"numero": 5, "dias": [{"numero": 1, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 2, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 3, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 4, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}]}, {"numero": 6, "dias": [{"numero": 1, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 2, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 3, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 4, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}]}, {"numero": 7, "dias": [{"numero": 1, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 2, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 3, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 4, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}]}, {"numero": 8, "dias": [{"numero": 1, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 2, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 3, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 4, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}]}, {"numero": 9, "dias": [{"numero": 1, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 2, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 3, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 4, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}]}, {"numero": 10, "dias": [{"numero": 1, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 2, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 3, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 4, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}]}, {"numero": 11, "dias": [{"numero": 1, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 2, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 3, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 4, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}]}, {"numero": 12, "dias": [{"numero": 1, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 2, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 3, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 4, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}]}, {"numero": 13, "dias": [{"numero": 1, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 2, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 3, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 4, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}]}, {"numero": 14, "dias": [{"numero": 1, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 2, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 3, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 4, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}]}, {"numero": 15, "dias": [{"numero": 1, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 2, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 3, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 4, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}]}, {"numero": 16, "dias": [{"numero": 1, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 2, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 3, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}, {"numero": 4, "ejercicios": [{"nombre": "Ejercicio 1", "youtubeId": ""}, {"nombre": "Ejercicio 2", "youtubeId": ""}, {"nombre": "Ejercicio 3", "youtubeId": ""}, {"nombre": "Ejercicio 4", "youtubeId": ""}, {"nombre": "Ejercicio 5", "youtubeId": ""}, {"nombre": "Ejercicio 6", "youtubeId": ""}, {"nombre": "Ejercicio 7", "youtubeId": ""}, {"nombre": "Ejercicio 8", "youtubeId": ""}, {"nombre": "Ejercicio 9", "youtubeId": ""}]}]}], "tests": [{"nombre": "Test inicial", "ejercicios": [{"nombre": "Test de movilidad", "youtubeId": "drive:1GVR8MP_tE96vixIpNj1xZPQXoWDO2ALx"}]}, {"nombre": "Test mes 1", "ejercicios": [{"nombre": "Test de movilidad", "youtubeId": ""}]}, {"nombre": "Test mes 2", "ejercicios": [{"nombre": "Test de movilidad", "youtubeId": ""}]}, {"nombre": "Test mes 3", "ejercicios": [{"nombre": "Test de movilidad", "youtubeId": ""}]}, {"nombre": "Test mes 4", "ejercicios": [{"nombre": "Test de movilidad", "youtubeId": ""}]}]}');
+}}
+
+function saveData() {
+  localStorage.setItem('mobilidad_programa', JSON.stringify(PROGRAMA));
+}
+
+let PROGRAMA = loadData();
+
+// ══════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════
+// Returns { type: 'youtube'|'drive', id: '...' } or { type: 'unknown', id: input }
+function extractVideoId(input) {
+  if (!input) return { type: '', id: '' };
+  input = input.trim();
+
+  // Google Drive patterns
+  // https://drive.google.com/file/d/FILE_ID/view
+  // https://drive.google.com/open?id=FILE_ID
+  const drivePatterns = [
+    /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/,
+    /drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/,
+    /drive\.google\.com\/.*[?&]id=([a-zA-Z0-9_-]+)/,
+  ];
+  for (const p of drivePatterns) {
+    const m = input.match(p);
+    if (m) return { type: 'drive', id: m[1] };
+  }
+
+  // YouTube patterns
+  if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return { type: 'youtube', id: input };
+  const ytPatterns = [
+    /[?&]v=([a-zA-Z0-9_-]{11})/,
+    /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+    /embed\/([a-zA-Z0-9_-]{11})/,
+    /shorts\/([a-zA-Z0-9_-]{11})/
+  ];
+  for (const p of ytPatterns) {
+    const m = input.match(p);
+    if (m) return { type: 'youtube', id: m[1] };
+  }
+
+  return { type: 'unknown', id: input };
+}
+
+// Stored value format: "drive:FILE_ID" or just "YT_ID" (legacy youtube)
+function encodeVideoRef(input) {
+  const { type, id } = extractVideoId(input);
+  if (!id) return '';
+  if (type === 'drive') return 'drive:' + id;
+  if (type === 'youtube') return id;
+  return id;
+}
+
+function decodeVideoRef(stored) {
+  if (!stored) return { type: '', id: '' };
+  if (stored.startsWith('drive:')) return { type: 'drive', id: stored.slice(6) };
+  if (/^[a-zA-Z0-9_-]{11}$/.test(stored)) return { type: 'youtube', id: stored };
+  return { type: '', id: '' };
+}
+
+function buildVideoHTML(stored, title) {
+  const { type, id } = decodeVideoRef(stored);
+  if (!id) return `<div class="video-placeholder">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+    </svg>
+    <span>Video próximamente</span>
+  </div>`;
+
+  if (type === 'drive') {
+    return `<iframe
+      src="https://drive.google.com/file/d/${id}/preview"
+      title="${title}"
+      allow="autoplay"
+      allowfullscreen
+      loading="lazy"></iframe>`;
+  }
+  // youtube
+  return `<iframe
+    src="https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1"
+    title="${title}"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen
+    loading="lazy"></iframe>`;
+}
+
+function buildAdminUrlValue(stored) {
+  if (!stored) return '';
+  const { type, id } = decodeVideoRef(stored);
+  if (type === 'drive') return `https://drive.google.com/file/d/${id}/view`;
+  if (type === 'youtube') return `https://www.youtube.com/watch?v=${id}`;
+  return stored;
+}
+
+function getFilledCount(dia) {
+  return dia.ejercicios.filter(e => e.youtubeId && e.youtubeId.trim()).length;
+}
+
+// ══════════════════════════════════════════════════════
+//  NAVEGACIÓN
+// ══════════════════════════════════════════════════════
+let currentWeek = null;
+let currentDay  = null;
+let currentTest = null;
+let navHistory  = ['weeks'];
+let adminOpen   = false;
+
+function showView(name) {
+  document.querySelectorAll('#mainApp .view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+
+  const heroSection = document.getElementById('heroSection');
+  const backBtn     = document.getElementById('backBtn');
+  const headerTitle = document.getElementById('headerTitle');
+
+  if (name === 'weeks') {
+    heroSection.style.display = '';
+    backBtn.style.display = 'none';
+    headerTitle.textContent = 'Programa de Movilidad';
+  } else if (name === 'days') {
+    heroSection.style.display = 'none';
+    backBtn.style.display = 'flex';
+    headerTitle.textContent = `Semana ${currentWeek + 1}`;
+  } else if (name === 'exercises') {
+    heroSection.style.display = 'none';
+    backBtn.style.display = 'flex';
+    headerTitle.textContent = `Semana ${currentWeek + 1} · Día ${currentDay + 1}`;
+  } else if (name === 'test') {
+    heroSection.style.display = 'none';
+    backBtn.style.display = 'flex';
+    headerTitle.textContent = PROGRAMA.tests[currentTest].nombre;
+  }
+}
+
+function goBack() {
+  if (adminOpen) { closeAdmin(); return; }
+  navHistory.pop();
+  const prev = navHistory[navHistory.length - 1] || 'weeks';
+  if (prev === 'weeks') {
+    currentWeek = null; currentDay = null; currentTest = null;
+    renderWeeks(); showView('weeks');
+  } else if (prev === 'days') {
+    currentDay = null;
+    renderDays(currentWeek); showView('days');
+  }
+}
+
+function toggleAdmin(e) {
+  e.preventDefault();
+  if (adminOpen) closeAdmin();
+  else openAdmin();
+}
+
+function openAdmin() {
+  adminOpen = true;
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('adminPage').classList.add('active');
+  document.getElementById('backBtn').style.display = 'flex';
+  document.getElementById('headerTitle').textContent = 'Cargar videos';
+  document.getElementById('adminToggle').textContent = '← Volver al programa';
+  renderAdminSelectors();
+  renderAdminDay();
+}
+
+function closeAdmin() {
+  adminOpen = false;
+  document.getElementById('mainApp').style.display = '';
+  document.getElementById('adminPage').classList.remove('active');
+  document.getElementById('adminToggle').textContent = '⚙ Cargar videos';
+  // restore header
+  showView(navHistory[navHistory.length - 1] || 'weeks');
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER: SEMANAS (con tests intercalados)
+// ══════════════════════════════════════════════════════
+// Test positions: ti=0 before week 1, ti=1 after week 4, ti=2 after week 8, ti=3 after week 12, ti=4 after week 16
+function renderWeeks() {
+  navHistory = ['weeks'];
+  const grid = document.getElementById('weeksGrid');
+  grid.innerHTML = '';
+
+  function makeTestCard(ti, delay) {
+    const test   = PROGRAMA.tests[ti];
+    const filled = test.ejercicios.filter(e => e.youtubeId).length;
+    const meta   = filled > 0
+                 ? `1 video · <strong style="color:var(--sage-dark)">listo ✓</strong>`
+                 : `1 video · próximamente`;
+
+    const wrap = document.createElement('div');
+    wrap.style.gridColumn = '1 / -1';
+
+    const card = document.createElement('div');
+    card.className = 'test-card';
+    card.style.animationDelay = delay + 's';
+    card.innerHTML = `
+      <div class="test-icon">📏</div>
+      <div class="test-card-body">
+        <div class="test-card-label">Test de movilidad</div>
+        <div class="test-card-title">${test.nombre}</div>
+        <div class="test-card-meta">${meta}</div>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--terra)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    `;
+    card.onclick = () => {
+      currentTest = ti;
+      renderTestView(ti);
+      navHistory.push('test');
+      showView('test');
+    };
+    wrap.appendChild(card);
+    return wrap;
+  }
+
+  let delay = 0;
+  const step = 0.04;
+
+  // Test inicial (before all weeks)
+  grid.appendChild(makeTestCard(0, delay)); delay += step;
+
+  PROGRAMA.semanas.forEach((semana, wi) => {
+    const totalEj  = semana.dias.flatMap(d => d.ejercicios).length;
+    const filledEj = semana.dias.flatMap(d => d.ejercicios).filter(e => e.youtubeId).length;
+
+    const card = document.createElement('div');
+    card.className = 'week-card';
+    card.style.animationDelay = delay + 's';
+    delay += step;
+    if (filledEj === totalEj && totalEj > 0) card.classList.add('complete');
+    else if (filledEj > 0) card.classList.add('in-progress');
+
+    const totalDayEx = semana.dias.reduce((a, d) => a + d.ejercicios.length, 0);
+    card.innerHTML = `
+      <div class="week-number">Semana</div>
+      <div class="week-title">${semana.numero}</div>
+      <div class="week-meta">
+        <span class="dot"></span>
+        <span>4 días · ${Math.round(totalDayEx / semana.dias.length)} ejercicios c/u</span>
+      </div>
+    `;
+    card.onclick = () => {
+      currentWeek = wi;
+      renderDays(wi);
+      navHistory.push('days');
+      showView('days');
+    };
+    grid.appendChild(card);
+
+    // Insert test after weeks 4, 8, 12, 16
+    if ((wi + 1) % 4 === 0) {
+      const testIndex = (wi + 1) / 4; // 1,2,3,4
+      grid.appendChild(makeTestCard(testIndex, delay)); delay += step;
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER: DÍAS
+// ══════════════════════════════════════════════════════
+function renderDays(wi) {
+  const semana = PROGRAMA.semanas[wi];
+  document.getElementById('weekTitle').textContent   = `Semana ${semana.numero}`;
+  document.getElementById('weekSubtitle').textContent = `4 días de trabajo`;
+
+  const grid = document.getElementById('daysGrid');
+  grid.innerHTML = '';
+
+  semana.dias.forEach((dia, di) => {
+    const filled = getFilledCount(dia);
+    const total  = dia.ejercicios.length;
+    const card   = document.createElement('div');
+    card.className = 'day-card';
+    card.style.animationDelay = (di * 0.07) + 's';
+
+    // subtitle: show video progress
+    const subtitle = filled === 0
+      ? `${total} ejercicios`
+      : filled === total
+        ? `${total} ejercicios · <strong style="color:var(--sage-dark)">completo ✓</strong>`
+        : `${total} ejercicios · <strong>${filled} con video</strong>`;
+
+    card.innerHTML = `
+      <div class="day-number">Semana ${wi + 1}</div>
+      <div class="day-title">Día ${dia.numero}</div>
+      <div class="day-count">${subtitle}</div>
+    `;
+    card.onclick = () => {
+      currentDay = di;
+      renderExercises(wi, di);
+      navHistory.push('exercises');
+      showView('exercises');
+    };
+    grid.appendChild(card);
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER: EJERCICIOS
+// ══════════════════════════════════════════════════════
+function renderExercises(wi, di) {
+  const dia = PROGRAMA.semanas[wi].dias[di];
+  document.getElementById('dayTitle').textContent    = `Semana ${wi + 1} · Día ${di + 1}`;
+  document.getElementById('daySubtitle').textContent = `${dia.ejercicios.length} ejercicios`;
+
+  const filled = getFilledCount(dia);
+  const pct    = dia.ejercicios.length ? Math.round(filled / dia.ejercicios.length * 100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  const list = document.getElementById('exercisesList');
+  list.innerHTML = '';
+
+  dia.ejercicios.forEach((ej, ei) => {
+    const hasVideo = ej.youtubeId && ej.youtubeId.trim();
+    const card = document.createElement('div');
+    card.className = 'exercise-card';
+    card.style.animationDelay = (ei * 0.04) + 's';
+
+    const videoHTML = buildVideoHTML(ej.youtubeId, ej.nombre);
+
+    card.innerHTML = `
+      <div class="exercise-header" onclick="toggleExercise(this.closest('.exercise-card'))">
+        <div class="exercise-num">${ei + 1}</div>
+        <div class="exercise-name">${ej.nombre}</div>
+        <span class="video-badge ${hasVideo ? 'has-video' : ''}">${hasVideo ? '▶ video' : 'pronto'}</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </div>
+      <div class="exercise-body">
+        <div class="video-wrapper">${videoHTML}</div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function toggleExercise(card) {
+  const isOpen = card.classList.contains('open');
+  document.querySelectorAll('.exercise-card.open').forEach(c => c.classList.remove('open'));
+  if (!isOpen) card.classList.add('open');
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER: TEST VIEW
+// ══════════════════════════════════════════════════════
+function renderTestView(ti) {
+  // Tests share videos — always read from tests[0] as source of truth for youtubeIds
+  // but keep names from the current test object
+  const sourceEjs = PROGRAMA.tests[0].ejercicios; // shared videos
+  const test = PROGRAMA.tests[ti];
+  document.getElementById('testTitle').textContent = test.nombre;
+
+  const filled = sourceEjs.filter(e => e.youtubeId).length;
+  const pct    = sourceEjs.length ? Math.round(filled / sourceEjs.length * 100) : 0;
+  document.getElementById('testProgressFill').style.width = pct + '%';
+
+  const list = document.getElementById('testExercisesList');
+  list.innerHTML = '';
+
+  test.ejercicios.forEach((ej, ei) => {
+    const ytId    = sourceEjs[ei].youtubeId;
+    const hasVideo = ytId && ytId.trim();
+    const card = document.createElement('div');
+    card.className = 'exercise-card';
+    card.style.animationDelay = (ei * 0.06) + 's';
+
+    const videoHTML = buildVideoHTML(ytId, ej.nombre);
+
+    card.innerHTML = `
+      <div class="exercise-header" onclick="toggleExercise(this.closest('.exercise-card'))">
+        <div class="exercise-num">${ei + 1}</div>
+        <div class="exercise-name">${ej.nombre}</div>
+        <span class="video-badge ${hasVideo ? 'has-video' : ''}">${hasVideo ? '▶ video' : 'pronto'}</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </div>
+      <div class="exercise-body">
+        <div class="video-wrapper">${videoHTML}</div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  ADMIN
+// ══════════════════════════════════════════════════════
+function renderAdminSelectors() {
+  const weekSel = document.getElementById('adminWeekSel');
+  const daySel  = document.getElementById('adminDaySel');
+  weekSel.innerHTML = PROGRAMA.semanas.map((s, i) =>
+    `<option value="${i}">Semana ${s.numero}</option>`
+  ).join('') + `<option value="test">— Tests —</option>`;
+
+  // show/hide day selector based on week selection
+  weekSel.onchange = () => {
+    if (weekSel.value === 'test') {
+      daySel.innerHTML = PROGRAMA.tests.map((t, i) =>
+        `<option value="test-${i}">${t.nombre}</option>`
+      ).join('');
+    } else {
+      daySel.innerHTML = `
+        <option value="0">Día 1</option>
+        <option value="1">Día 2</option>
+        <option value="2">Día 3</option>
+        <option value="3">Día 4</option>
+        <option value="test-0">Test de movilidad</option>
+      `;
+    }
+    renderAdminDay();
+  };
+}
+
+// Build a map: normalizedName → { youtubeId, label }
+function buildExerciseIndex() {
+  const index = {};
+  PROGRAMA.semanas.forEach((semana, wi) => {
+    semana.dias.forEach((dia, di) => {
+      dia.ejercicios.forEach((ej) => {
+        if (ej.youtubeId && ej.nombre && !ej.nombre.startsWith('Ejercicio ')) {
+          const key = ej.nombre.trim().toLowerCase();
+          if (!index[key]) {
+            index[key] = {
+              youtubeId: ej.youtubeId,
+              nombre: ej.nombre,
+              label: `S${wi+1} D${di+1}`
+            };
+          }
+        }
+      });
+    });
+  });
+  return index;
+}
+
+function renderAdminDay() {
+  const weekVal = document.getElementById('adminWeekSel').value;
+  const dayVal  = document.getElementById('adminDaySel').value;
+  const exIndex = buildExerciseIndex();
+
+  // Determine which exercises to show
+  let ejercicios, isTest = false, testIdx = null;
+  const isTestMode = dayVal === 'test' || dayVal.startsWith('test-') || weekVal === 'test';
+
+  if (isTestMode) {
+    isTest = true;
+    testIdx    = 0;
+    ejercicios = PROGRAMA.tests[0].ejercicios;
+  } else {
+    const wi = parseInt(weekVal);
+    const di = parseInt(dayVal);
+    ejercicios = PROGRAMA.semanas[wi].dias[di].ejercicios;
+  }
+
+  const container = document.getElementById('adminExercises');
+  container.innerHTML = '';
+
+  if (isTest) {
+    const note = document.createElement('p');
+    note.style.cssText = 'font-size:0.82rem;color:var(--mid-gray);margin-bottom:1rem;font-weight:300;line-height:1.5;';
+    note.textContent = 'Es un solo video para todos los tests. Cargalo una sola vez acá.';
+    container.appendChild(note);
+  }
+
+  ejercicios.forEach((ej, ei) => {
+    const row = document.createElement('div');
+    row.className = 'admin-exercise-row';
+
+    const defaultName   = isTest ? `Pose ${ei+1}` : `Ejercicio ${ei+1}`;
+    const currentNombre = ej.nombre !== defaultName ? ej.nombre : '';
+    const currentUrl    = buildAdminUrlValue(ej.youtubeId);
+
+    row.innerHTML = `
+      <div class="admin-exercise-num">${ei + 1}</div>
+      <div class="admin-fields">
+        <div class="admin-nombre-wrap">
+          <input class="admin-input" type="text" placeholder="${isTest ? 'Nombre de la pose (ej: Flexión de cadera)' : 'Nombre del ejercicio (ej: Cat-Cow)'}"
+            value="${currentNombre}"
+            data-ei="${ei}" data-field="nombre"
+            autocomplete="off">
+          <div class="autocomplete-dropdown" id="ac-${ei}"></div>
+        </div>
+        <input class="admin-input url-input" type="text" placeholder="Link de Google Drive o YouTube"
+          value="${currentUrl}"
+          data-ei="${ei}" data-field="url">
+      </div>
+    `;
+    container.appendChild(row);
+
+    const nombreInput = row.querySelector('[data-field="nombre"]');
+    const urlInput    = row.querySelector('[data-field="url"]');
+    const dropdown    = row.querySelector(`#ac-${ei}`);
+
+    nombreInput.addEventListener('input', () => {
+      const query = nombreInput.value.trim().toLowerCase();
+      dropdown.innerHTML = '';
+      if (query.length < 2) { dropdown.classList.remove('open'); return; }
+      const matches = Object.values(exIndex).filter(e => e.nombre.toLowerCase().includes(query));
+      if (matches.length === 0) { dropdown.classList.remove('open'); return; }
+      matches.slice(0, 6).forEach(match => {
+        const item = document.createElement('div');
+        item.className = 'autocomplete-item';
+        item.innerHTML = `
+          <span class="autocomplete-item-name">${match.nombre}</span>
+          <span class="autocomplete-item-badge">▶ ${match.label}</span>
+        `;
+        item.onmousedown = (e) => {
+          e.preventDefault();
+          nombreInput.value = match.nombre;
+          urlInput.value    = buildAdminUrlValue(match.youtubeId);
+          dropdown.classList.remove('open');
+        };
+        dropdown.appendChild(item);
+      });
+      dropdown.classList.add('open');
+    });
+
+    nombreInput.addEventListener('blur', () => {
+      setTimeout(() => dropdown.classList.remove('open'), 150);
+    });
+  });
+}
+
+function saveAdminDay() {
+  const weekVal = document.getElementById('adminWeekSel').value;
+  const dayVal  = document.getElementById('adminDaySel').value;
+
+  const isTestMode = dayVal === 'test' || dayVal.startsWith('test-') || weekVal === 'test';
+
+  let ejercicios, label;
+
+  if (isTestMode) {
+    ejercicios = PROGRAMA.tests[0].ejercicios; // shared
+    label = 'Test de movilidad';
+  } else {
+    const wi = parseInt(weekVal);
+    const di = parseInt(dayVal);
+    ejercicios = PROGRAMA.semanas[wi].dias[di].ejercicios;
+    label = `Semana ${wi+1} · Día ${di+1}`;
+  }
+
+  document.querySelectorAll('#adminExercises .admin-exercise-row').forEach(row => {
+    const ei       = parseInt(row.querySelector('[data-field="nombre"]').dataset.ei);
+    const nombre   = row.querySelector('[data-field="nombre"]').value.trim();
+    const urlInput = row.querySelector('[data-field="url"]').value.trim();
+    const ref      = encodeVideoRef(urlInput);
+
+    if (nombre) ejercicios[ei].nombre    = nombre;
+    if (ref)    ejercicios[ei].youtubeId = ref;
+    else if (!urlInput) ejercicios[ei].youtubeId = '';
+  });
+
+  // If test: sync names to all test instances (videos already shared via tests[0])
+  if (isTestMode) {
+    PROGRAMA.tests.forEach((t, ti) => {
+      if (ti === 0) return;
+      t.ejercicios.forEach((ej, ei) => {
+        ej.nombre = PROGRAMA.tests[0].ejercicios[ei].nombre;
+      });
+    });
+  }
+
+  saveData();
+
+  const fb = document.getElementById('saveFeedback');
+  fb.textContent = `✓ Guardado — ${label}`;
+  setTimeout(() => fb.textContent = '', 3000);
+}
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+renderWeeks();
+showView('weeks');
+</script>
+</body>
+</html>
